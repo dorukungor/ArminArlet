@@ -18,7 +18,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [username, setUsername] = useState('');
   const [lobbyId, setLobbyId] = useState('');
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function Home() {
 
   const createLobby = async () => {
     if (!username) {
-      setError('Lütfen bir kullanıcı adı girin');
+      setErrorMessage('Lütfen bir kullanıcı adı girin');
       return;
     }
 
@@ -45,7 +45,7 @@ export default function Home() {
       
       const snapshot = await get(lobbyRef);
       if (snapshot.exists()) {
-        setError('Lütfen tekrar deneyin');
+        setErrorMessage('Lütfen tekrar deneyin');
         return;
       }
       
@@ -58,8 +58,8 @@ export default function Home() {
       });
 
       router.push(`/lobby/${newLobbyId}?username=${username}`);
-    } catch (error) {
-      setError('Lobi oluşturulurken bir hata oluştu');
+    } catch (err) {
+      setErrorMessage('Lobi oluşturulurken bir hata oluştu');
     }
   };
 
@@ -72,12 +72,12 @@ export default function Home() {
 
   const joinLobby = async () => {
     if (!username) {
-      setError('Lütfen bir kullanıcı adı girin');
+      setErrorMessage('Lütfen bir kullanıcı adı girin');
       return;
     }
 
     if (!lobbyId || lobbyId.length !== 6) {
-      setError('Lütfen 6 karakterli bir lobi ID\'si girin');
+      setErrorMessage('Lütfen 6 karakterli bir lobi ID&apos;si girin');
       return;
     }
 
@@ -86,21 +86,21 @@ export default function Home() {
       const snapshot = await get(lobbyRef);
       
       if (!snapshot.exists()) {
-        setError('Lobi bulunamadı');
+        setErrorMessage('Lobi bulunamadı');
         return;
       }
 
       const lobbyData = snapshot.val();
       
       if (lobbyData.participants[username]) {
-        setError('Bu kullanıcı adı zaten kullanılıyor');
+        setErrorMessage('Bu kullanıcı adı zaten kullanılıyor');
         return;
       }
 
       await set(ref(database, `lobbies/${lobbyId}/participants/${username}`), true);
       router.push(`/lobby/${lobbyId}?username=${username}`);
-    } catch (error) {
-      setError('Lobiye katılırken bir hata oluştu');
+    } catch (err) {
+      setErrorMessage('Lobiye katılırken bir hata oluştu');
     }
   };
 
@@ -114,9 +114,9 @@ export default function Home() {
           Abilerim Ablalarım Şimdiden Afiyet Olsun
         </p>
         
-        {error && (
+        {errorMessage && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 text-lg">
-            {error}
+            {errorMessage}
           </div>
         )}
 
@@ -153,7 +153,7 @@ export default function Home() {
 
           <div>
             <label htmlFor="lobbyId" className="block text-lg font-bold text-[#4a332f] mb-2">
-              Lobi ID'si
+              Lobi ID&apos;si
             </label>
             <input
               type="text"

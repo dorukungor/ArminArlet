@@ -25,6 +25,7 @@ interface Lobby {
 }
 
 export default function LobbyPage() {
+  const [mounted, setMounted] = useState(false);
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -32,8 +33,12 @@ export default function LobbyPage() {
   const username = searchParams.get('username');
 
   const [lobby, setLobby] = useState<Lobby | null>(null);
-  const [vote, setVote] = useState<number>(1);
-  const [error, setError] = useState<string>('');
+  const [vote, setVote] = useState<number>(3);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!username) {
@@ -46,7 +51,7 @@ export default function LobbyPage() {
       if (snapshot.exists()) {
         setLobby(snapshot.val());
       } else {
-        setError('Lobi bulunamadı');
+        setErrorMessage('Lobi bulunamadı');
         router.push('/');
       }
     });
@@ -54,16 +59,24 @@ export default function LobbyPage() {
     return () => unsubscribe();
   }, [lobbyId, username, router]);
 
+  if (!mounted || !lobby) {
+    return (
+      <div className="min-h-screen bg-[#f5e6d3] flex items-center justify-center">
+        <div className="text-[#4a332f] text-xl">Yükleniyor...</div>
+      </div>
+    );
+  }
+
   const startVoting = async () => {
     if (lobby?.owner !== username) {
-      setError('Sadece lobi sahibi oylama başlatabilir');
+      setErrorMessage('Sadece lobi sahibi oylama başlatabilir');
       return;
     }
 
     try {
       await set(ref(database, `lobbies/${lobbyId}/status`), 'voting');
-    } catch (error) {
-      setError('Oylama başlatılırken bir hata oluştu');
+    } catch (err) {
+      setErrorMessage('Oylama başlatılırken bir hata oluştu');
     }
   };
 
@@ -88,7 +101,7 @@ export default function LobbyPage() {
 
       if (allVoted) {
         // Sonraki çikolataya geç veya oylamayı bitir
-        if (currentLobby.currentChocolate >= 8) {
+        if (currentLobby.currentChocolate >= 4) {
           await set(ref(database, `lobbies/${lobbyId}/status`), 'finished');
         } else {
           await set(
@@ -97,8 +110,8 @@ export default function LobbyPage() {
           );
         }
       }
-    } catch (error) {
-      setError('Oy verilirken bir hata oluştu');
+    } catch (err) {
+      setErrorMessage('Oy verilirken bir hata oluştu');
     }
   };
 
@@ -129,27 +142,21 @@ export default function LobbyPage() {
     return results.sort((a, b) => b.average - a.average);
   };
 
-  if (!lobby) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-xl font-medium text-gray-600">Yükleniyor...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#f5e6d3] flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-8">
+    <div className="min-h-screen bg-[#f5e6d3] py-12 px-4">
+      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-8">
         <div className="mb-8">
-          <h1 className="text-5xl font-bold text-center text-[#4a332f] mb-4">
-            Çikolata Değerlendirme Lobisi
+          <h1 className="text-4xl font-bold text-center text-[#4a332f]">
+            Çikolata Değerlendirme
           </h1>
-          <p className="text-center text-[#4a332f] text-xl font-medium mt-2">Lobi ID: {lobbyId}</p>
+          <p className="text-center text-[#8b5e3c] mt-2 text-lg font-medium">
+            Lobi ID: {lobbyId}
+          </p>
         </div>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 text-lg font-medium">
-            {error}
+        {errorMessage && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 text-lg">
+            {errorMessage}
           </div>
         )}
 
@@ -170,21 +177,21 @@ export default function LobbyPage() {
         {lobby.status === 'waiting' && lobby.owner === username && (
           <button
             onClick={startVoting}
-            className="w-full py-4 px-4 bg-[#8b5e3c] hover:bg-[#6d4a2f] text-white rounded-lg transition-colors font-medium text-xl shadow-md"
+            className="w-full py-4 px-4 bg-[#8b5e3c] hover:bg-[#6d4a2f] text-white rounded-lg transition-colors font-medium text-lg shadow-md"
           >
             Oylamayı Başlat
           </button>
         )}
 
         {lobby.status === 'voting' && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-[#4a332f] mb-4">
+              <h2 className="text-2xl font-bold text-[#4a332f]">
                 Çikolata #{lobby.currentChocolate + 1}
               </h2>
               {!hasVoted() ? (
                 <div className="mt-6">
-                  <label className="block text-xl font-bold text-[#4a332f] mb-4">
+                  <label className="block text-lg font-medium text-[#4a332f] mb-4">
                     Puanınız (1-5)
                   </label>
                   <input
@@ -193,31 +200,31 @@ export default function LobbyPage() {
                     max="5"
                     value={vote}
                     onChange={(e) => setVote(Number(e.target.value))}
-                    className="w-full h-4 mb-4"
+                    className="w-full accent-[#8b5e3c]"
                   />
-                  <div className="text-4xl font-bold mt-4 text-[#4a332f]">{vote}</div>
+                  <div className="text-4xl font-bold text-[#8b5e3c] mt-4">{vote}</div>
                   <button
                     onClick={submitVote}
-                    className="mt-6 py-4 px-6 bg-[#8b5e3c] hover:bg-[#6d4a2f] text-white rounded-lg transition-colors font-medium text-xl shadow-md"
+                    className="mt-6 py-4 px-8 bg-[#8b5e3c] hover:bg-[#6d4a2f] text-white rounded-lg transition-colors font-medium text-lg shadow-md"
                   >
                     Oyu Gönder
                   </button>
                 </div>
               ) : (
-                <p className="mt-4 text-green-600 text-xl font-bold">Oyunuzu verdiniz!</p>
+                <p className="mt-4 text-xl font-medium text-green-600">Oyunuzu verdiniz!</p>
               )}
             </div>
 
             <div>
               <h3 className="text-xl font-bold text-[#4a332f] mb-4">Bekleyen Oylar</h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {Object.keys(lobby.participants).map((participant) => {
                   const hasVoted = lobby.votes?.[lobby.currentChocolate]?.[participant];
                   return (
                     <li
                       key={participant}
-                      className={`text-lg font-medium p-3 rounded-lg ${
-                        hasVoted ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      className={`text-lg font-medium ${
+                        hasVoted ? 'text-green-600' : 'text-red-600'
                       }`}
                     >
                       {participant}: {hasVoted ? 'Oy verdi' : 'Bekliyor'}
@@ -231,31 +238,31 @@ export default function LobbyPage() {
 
         {lobby.status === 'finished' && (
           <div>
-            <h2 className="text-3xl font-bold text-[#4a332f] mb-6">Sonuçlar</h2>
-            <div className="space-y-8">
+            <h2 className="text-2xl font-bold text-[#4a332f] mb-6">Sonuçlar</h2>
+            <div className="space-y-6">
               {getResults().map((result) => (
-                <div key={result.index} className="bg-[#8b5e3c] text-white p-6 rounded-lg shadow-md">
+                <div
+                  key={result.index}
+                  className="bg-[#f8f1ea] p-6 rounded-lg"
+                >
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-2xl font-bold">Çikolata #{result.index}</span>
-                    <span className="text-3xl font-bold bg-white text-[#4a332f] px-4 py-2 rounded-lg">
+                    <span className="text-xl font-bold text-[#4a332f]">
+                      Çikolata #{result.index}
+                    </span>
+                    <span className="text-2xl font-bold text-[#8b5e3c]">
                       {result.average.toFixed(1)} / 5
                     </span>
                   </div>
-                  <div className="border-t border-white/20 pt-4">
-                    <h3 className="text-lg font-bold mb-3">Verilen Oylar:</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {result.voterDetails.map((detail) => (
-                        <div 
-                          key={detail.voter}
-                          className="flex justify-between items-center bg-white/10 p-4 rounded-lg text-lg font-medium"
-                        >
-                          <span>{detail.voter}</span>
-                          <span className="font-bold bg-white text-[#4a332f] px-3 py-1 rounded-lg">
-                            {detail.vote} ★
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="space-y-2">
+                    {result.voterDetails.map((voter) => (
+                      <div
+                        key={voter.voter}
+                        className="flex justify-between items-center text-lg"
+                      >
+                        <span className="font-medium text-[#4a332f]">{voter.voter}</span>
+                        <span className="font-bold text-[#8b5e3c]">{voter.vote} / 5</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
