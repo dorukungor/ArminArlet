@@ -21,8 +21,8 @@ Gruplar halinde çikolata değerlendirme yapabileceğiniz bir web uygulaması.
 
 1. Repository'yi klonlayın:
    ```bash
-   git clone https://github.com/[kullanıcı-adı]/chocolate-rating.git
-   cd chocolate-rating
+   git clone https://github.com/dorukungor/ArminArlet.git
+   cd ArminArlet
    ```
 
 2. Bağımlılıkları yükleyin:
