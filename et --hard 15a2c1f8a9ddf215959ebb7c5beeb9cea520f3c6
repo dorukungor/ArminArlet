@@ -1,0 +1,23 @@
+[33mcommit 2abbcf8ba619c7b49ca5fc81b532011409c68e42[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: dorukungor <doruk.ungor01@gmail.com>
+Date:   Fri Jan 3 20:05:08 2025 +0300
+
+    Fix ESLint errors and improve UI
+
+[33mcommit 15a2c1f8a9ddf215959ebb7c5beeb9cea520f3c6[m
+Author: dorukungor <doruk.ungor01@gmail.com>
+Date:   Fri Jan 3 19:48:08 2025 +0300
+
+    Add ESLint configuration
+
+[33mcommit b6629cfe2d480236f88428c7b05d03c2083a72a6[m
+Author: dorukungor <doruk.ungor01@gmail.com>
+Date:   Fri Jan 3 19:45:31 2025 +0300
+
+    Update repository URL in README
+
+[33mcommit f2a410317e63655e8905e6241c5106522533d1d3[m
+Author: dorukungor <doruk.ungor01@gmail.com>
+Date:   Fri Jan 3 19:43:50 2025 +0300
+
+    Initial commit
